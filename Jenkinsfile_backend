@@ -1,0 +1,27 @@
+// codename alibi / backend
+
+pipeline {
+    agent any
+
+    stages {
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+        stage('Build Next.js App') {
+            steps {
+                sh 'npm run build'
+            }
+        }
+
+        // stage('Export (if using static site export)') {
+        //     when {
+        //         expression { return params.STATIC_EXPORT }
+        //     }
+        //     steps {
+        //         sh 'npm run export'
+        //     }
+        // }
+    }
+}
