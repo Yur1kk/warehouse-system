@@ -31,3 +31,32 @@ model User {
   password String  @db.VarChar(255)
   createdAt DateTime @default(now())
 }
+
+
+enum ResourceType {
+  TECHNIQUE 
+  WEAPON   
+  AMMUNITION
+  ARTILLERY
+  AUTOTRANSPORT
+}
+
+enum ResourceStatus {
+  ON_REPAIR      
+  DESTROYED     
+  DEPLOYED      
+  IN_STOCK      
+  EXPECTED      
+}
+
+model MaterialResource {
+  id                 Int             @id @default(autoincrement())
+  type               ResourceType
+  typeDescription    String
+  quantity           Int             
+  status             ResourceStatus   
+  location           String        
+  responsiblePerson  String          
+  expectedArrivalDate DateTime?      
+  createdAt          DateTime     @default(now())         
+}
