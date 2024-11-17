@@ -8,8 +8,17 @@ export class MaterialResourceService {
   constructor(private readonly prisma: PrismaService) {}
   
 
-  private checkUserAccess(roleId: number): void {
-    if (roleId !== 2 && roleId !== 1) {
+  private async checkUserAccess(userId: number): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { roleId: true },
+    });
+
+    if (!user) {
+      throw new ForbiddenException('User not found');
+    }
+
+    if (user.roleId !== 2 && user.roleId !== 1) {
       throw new ForbiddenException('You do not have permission to perform this action');
     }
   }
