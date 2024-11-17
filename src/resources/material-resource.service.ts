@@ -8,11 +8,12 @@ export class MaterialResourceService {
   constructor(private readonly prisma: PrismaService) {}
   
 
-  private checkUserAccess(userId: number): void {
-    if (userId !== 2 && userId !== 1) {
+  private checkUserAccess(roleId: number): void {
+    if (roleId !== 2 && roleId !== 1) {
       throw new ForbiddenException('You do not have permission to perform this action');
     }
   }
+  
   
 
   async create(createMaterialResourceDto: CreateMaterialResourceDto, userId: number): Promise<MaterialResource> {
