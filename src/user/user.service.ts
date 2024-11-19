@@ -23,12 +23,15 @@ export class UserService {
     });
   }
 
-  async saveResetToken(userId: number, token: string) {
+  async saveResetToken(userId: number, resetToken: string, expirationTime: number) {
     await this.prisma.user.update({
       where: { id: userId },
-      data: { resetToken: token }, 
+      data: {
+        resetToken,
+        resetTokenExpiration: new Date(expirationTime), 
+      },
     });
-  }
+}
 
   async findUserByResetToken(token: string) {
     const users = await this.prisma.user.findMany(); 
@@ -39,7 +42,7 @@ export class UserService {
   async clearResetToken(userId: number) {
     await this.prisma.user.update({
       where: { id: userId },
-      data: { resetToken: null }, 
+      data: { resetToken: null, resetTokenExpiration: null },
     });
   }
 
