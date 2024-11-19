@@ -28,6 +28,7 @@ model User {
   profilePhoto String? @db.VarChar(255)
   email   String   @unique @db.VarChar(255)
   resetToken    String?
+  resetTokenExpiration DateTime?
   password String  @db.VarChar(255)
   createdAt DateTime @default(now())
 }
