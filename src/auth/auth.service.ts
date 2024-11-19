@@ -6,13 +6,13 @@ import { JwtService } from '@nestjs/jwt';
 import { MailService } from '../mail/mail.service';
 import { v4 as uuidv4 } from 'uuid';
 import * as dotenv from 'dotenv';
-import { ResetPasswordDto } from './dto/reset-password.dto';
+import { PrismaService } from 'prisma/prisma.service';
 
 dotenv.config();
 
 @Injectable()
 export class AuthService {
-  constructor(private userService: UserService, private jwtService: JwtService, private mailService: MailService) {}
+  constructor(private userService: UserService, private jwtService: JwtService, private mailService: MailService, private prismaService: PrismaService) {}
 
   async login(loginDto: LoginDto) {
     const user = await this.userService.findUserByEmail(loginDto.email);
@@ -30,39 +30,64 @@ export class AuthService {
     };
   }
 
-  async requestPasswordReset(email: string) {
+  async requestPasswordReset(email: string): Promise<void> {
     const user = await this.userService.findUserByEmail(email);
+  
     if (!user) {
-      throw new NotFoundException('User with this email does not exist!');
+      throw new BadRequestException('User not found.');
     }
+  
+    const resetToken = uuidv4(); 
+    const resetTokenExpires = new Date(Date.now() + 3600000); 
+  
+    await this.prismaService.user.update({
+      where: { email },
+      data: {
+        resetToken: resetToken,
+        resetTokenExpiration: resetTokenExpires,
+      },
+    });
+  
+    const resetLink = `http://localhost:3000/auth/reset-password?token=${resetToken}&email=${email}`;
+    const subject = 'Password Reset Request';
+    const text = `You requested a password reset. Use the following link to reset your password: ${resetLink}`;
+  
 
-    const resetToken = uuidv4();
-    await this.userService.saveResetToken(user.id, resetToken);
+    await this.mailService.sendEmail(email, subject, text);
+  }
+  
+  
 
-    const resetLink = `${process.env.BASE_URL}/auth/reset-password?token=${resetToken}&email=${email}`;
-    
-    await this.mailService.sendEmail(
-      user.email,
-      'Password Reset Request',
-      `You requested to reset your password. Click the link to reset it: ${resetLink}`
-    );
 
-    return { message: 'Password reset email sent.' };
+async validateResetToken(token: string, email: string): Promise<boolean> {
+  const user = await this.userService.findUserByEmail(email)
+
+  if (!user || user.resetToken !== token || user.resetTokenExpiration < new Date()) {
+    return false;
   }
 
-  async resetPassword(newPassword: string, token: string, resetPasswordDto: ResetPasswordDto) {
-    const { confirmNewPassword } = resetPasswordDto;
-    if (newPassword !== confirmNewPassword) {
-      throw new BadRequestException('Passwords do not match!');
-    }
-    const user = await this.userService.findUserByResetToken(token);
-    if (!user) {
-        throw new NotFoundException('Invalid or expired reset token.');
-    }
+  return true; 
+}
 
-    await this.userService.updatePassword(user.email, newPassword);
-    await this.userService.clearResetToken(user.id); 
 
-    return { message: 'Password has been reset successfully.' };
+async resetPassword(newPassword: string, token: string): Promise<void> {
+  const user = await this.prismaService.user.findFirst({
+    where: { resetToken: token },
+  });
+
+  if (!user) {
+    throw new BadRequestException('Invalid token.');
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await this.prismaService.user.update({
+    where: { id: user.id },
+    data: {
+      password: hashedPassword,
+      resetToken: null, 
+      resetTokenExpiration: null, 
+    },
+  });
 }
 }
