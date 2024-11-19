@@ -1,0 +1,75 @@
+
+.home-page {
+    font-family: Arial, sans-serif;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #333;
+    padding: 10px 20px;
+    width: 100%; 
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000; 
+}
+
+.navbar .logo button {
+    background: none;
+    border: none;
+}
+
+.navbar .logo img {
+    height: 40px; 
+}
+
+.navbar-links {
+    display: flex;
+    gap: 30px; 
+}
+
+.navbar-links button {
+    background-color: #555;
+    color: white;
+    padding: 10px 20px;  
+    border: none;
+    cursor: pointer;
+}
+
+.navbar-links button:hover {
+    background-color: #444;
+}
+
+.navbar-links .active {
+    background-color: #0056b3;
+}
+
+.logout-container {
+    margin-left: auto;
+}
+
+.logout-container button {
+    background-color: #ff4d4d;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+}
+
+.logout-container button:hover {
+    background-color: #e60000;
+}
+
+.content {
+    padding: 80px 20px 20px;  
+}
+
+.message {
+    color: green;
+}
+
+.error {
+    color: red;
+}

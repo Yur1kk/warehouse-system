@@ -28,33 +28,18 @@ model User {
   profilePhoto String? @db.VarChar(255)
   email   String   @unique @db.VarChar(255)
   resetToken    String?
+  resetTokenExpiration DateTime?
   password String  @db.VarChar(255)
   createdAt DateTime @default(now())
 }
 
 
-enum ResourceType {
-  TECHNIQUE 
-  WEAPON   
-  AMMUNITION
-  ARTILLERY
-  AUTOTRANSPORT
-}
-
-enum ResourceStatus {
-  ON_REPAIR      
-  DESTROYED     
-  DEPLOYED      
-  IN_STOCK      
-  EXPECTED      
-}
-
 model MaterialResource {
   id                 Int             @id @default(autoincrement())
-  type               ResourceType
+  type               String
   typeDescription    String
   quantity           Int             
-  status             ResourceStatus   
+  status             String  
   location           String        
   responsiblePerson  String          
   expectedArrivalDate DateTime?      

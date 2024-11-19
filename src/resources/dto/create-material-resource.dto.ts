@@ -1,9 +1,8 @@
-import { IsString, IsEnum, IsOptional, IsInt } from 'class-validator';
-import { ResourceType, ResourceStatus } from '@prisma/client'; 
+import { IsString, IsOptional, IsInt } from 'class-validator';
 
 export class CreateMaterialResourceDto {
   @IsString()
-  type: ResourceType; 
+  type: string; 
 
   @IsString()
   typeDescription: string; 
@@ -11,8 +10,8 @@ export class CreateMaterialResourceDto {
   @IsInt()
   quantity: number; 
 
-  @IsEnum(ResourceStatus)
-  status: ResourceStatus; 
+  @IsString()
+  status: string; 
 
   @IsString()
   location: string; 

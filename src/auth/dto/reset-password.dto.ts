@@ -1,4 +1,4 @@
-import { IsString, MinLength, Matches } from 'class-validator';
+import { IsString, MinLength, Matches, IsNotEmpty } from 'class-validator';
 
 export class ResetPasswordDto {
   @IsString()
@@ -16,4 +16,12 @@ export class ResetPasswordDto {
   @Matches(/(?=.*[a-z])/, { message: 'Password must contain at least one small letter' })
   @Matches(/(?=.*[!@#$%^&*])/, { message: 'Password must contain at least one special symbol' })
   confirmNewPassword: string;
+
+  @IsString()
+  @IsNotEmpty()
+  token: string;
+
+  @IsString()
+  @IsNotEmpty()
+  email: string;
 }
