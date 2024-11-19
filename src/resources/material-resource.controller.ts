@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards, Body, Get, Param, Patch, Delete, Query, Request } from '@nestjs/common';
+import { Controller, Post, UseGuards, Body, Get, Param, Patch, Delete, Query, Request, ParseIntPipe } from '@nestjs/common';
 import { MaterialResourceService } from './material-resource.service';
 import { CreateMaterialResourceDto } from './dto/create-material-resource.dto';
 import { MaterialResource, ResourceStatus, ResourceType } from '@prisma/client';
@@ -31,11 +31,14 @@ export class MaterialResourceController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  findOne(@Request() req, @Param('id') id: string): Promise<MaterialResource | null> {
-    const userId = req.user.sub; 
-    const parsedId = parseInt(id, 10);
-    return this.materialResourceService.findOne(parsedId, userId);
+  findOne(
+    @Request() req,
+    @Param('id', new ParseIntPipe()) id: number 
+  ): Promise<MaterialResource | null> {
+    const userId = req.user.sub;
+    return this.materialResourceService.findOne(id, userId);
   }
+  
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
