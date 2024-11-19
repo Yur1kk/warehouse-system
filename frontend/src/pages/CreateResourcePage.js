@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './CreateResourcePage.css';
@@ -13,28 +13,30 @@ const CreateResourcePage = ({ isAuthenticated }) => {
   const [expectedArrivalDate, setExpectedArrivalDate] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [typesAndStatuses, setTypesAndStatuses] = useState({ types: [], statuses: [] });
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchTypesAndStatuses = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/material-resources/types-status', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-          },
-        });
-        setTypesAndStatuses(response.data);
-      } catch (err) {
-        setError('Failed to load types and statuses.');
-      }
-    };
-    fetchTypesAndStatuses();
-  }, []);
+  const statusTranslations = {
+    ON_REPAIR: 'На ремонті',
+    DESTROYED: 'Знищено',
+    DEPLOYED: 'Використовується',
+    IN_STOCK: 'В наявності',
+    EXPECTED: 'Очікується',
+  };
+
+  const typeTranslations = {
+    TECHNIQUE: 'Техніка',
+    WEAPON: 'Зброя',
+    AMMUNITION: 'Боєприпаси',
+    ARTILLERY: 'Артилерія',
+    AUTOTRANSPORT: 'Автотранспорт',
+  };
+
+  const statusOptions = ['ON_REPAIR', 'DESTROYED', 'DEPLOYED', 'IN_STOCK', 'EXPECTED'];
+  const typeOptions = ['TECHNIQUE', 'WEAPON', 'AMMUNITION', 'ARTILLERY', 'AUTOTRANSPORT'];
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    
+
     if (!type || !typeDescription || !quantity || !status || !location || !responsiblePerson) {
       setError('All fields are required!');
       return;
@@ -64,7 +66,7 @@ const CreateResourcePage = ({ isAuthenticated }) => {
           },
         }
       );
-      
+
       setMessage('Resource created successfully!');
       setError('');
       navigate('/material-resources');
@@ -76,22 +78,16 @@ const CreateResourcePage = ({ isAuthenticated }) => {
 
   return (
     <div className="create-resource-page">
-
       <nav className="navbar">
-        <ul>
         <button onClick={() => navigate('/')}>Home</button>
-        </ul>
       </nav>
 
-      <h1></h1>
+      <h1>Create New Resource</h1>
 
-      
-      
       {message && <p className="message">{message}</p>}
       {error && <p className="error">{error}</p>}
 
       <form onSubmit={handleSubmit}>
-      <h1>Create New Resource</h1>
         <div>
           <label htmlFor="type">Resource Type:</label>
           <select
@@ -101,8 +97,10 @@ const CreateResourcePage = ({ isAuthenticated }) => {
             required
           >
             <option value="">Select Type</option>
-            {typesAndStatuses.types.map((type) => (
-              <option key={type} value={type}>{type}</option>
+            {typeOptions.map((typeOption) => (
+              <option key={typeOption} value={typeOption}>
+                {typeTranslations[typeOption]} 
+              </option>
             ))}
           </select>
         </div>
@@ -138,8 +136,10 @@ const CreateResourcePage = ({ isAuthenticated }) => {
             required
           >
             <option value="">Select Status</option>
-            {typesAndStatuses.statuses.map((status) => (
-              <option key={status} value={status}>{status}</option>
+            {statusOptions.map((statusOption) => (
+              <option key={statusOption} value={statusOption}>
+                {statusTranslations[statusOption]} 
+              </option>
             ))}
           </select>
         </div>
@@ -167,7 +167,7 @@ const CreateResourcePage = ({ isAuthenticated }) => {
         </div>
 
         <div>
-          <label htmlFor="expectedArrivalDate">Expected Arrival Date:</label>
+          <label htmlFor="expectedArrivalDate">(Optional)Expected Arrival Date:</label>
           <input
             type="date"
             id="expectedArrivalDate"

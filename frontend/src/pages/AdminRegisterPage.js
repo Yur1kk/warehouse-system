@@ -49,7 +49,6 @@ const RegisterAdmin = () => {
 
   return (
     <div className="register-admin-page">
-      {/* NavBar */}
       <nav className="navbar">
         <button onClick={() => navigate('/')}>Home</button>
       </nav>
@@ -92,7 +91,6 @@ const RegisterAdmin = () => {
           required
         />
 
-        {/* Role selection */}
         <select value={role} onChange={(e) => setRole(Number(e.target.value))}>
           <option value={2}>Warehouse Admin</option>
           <option value={3}>Personal Records Admin</option>

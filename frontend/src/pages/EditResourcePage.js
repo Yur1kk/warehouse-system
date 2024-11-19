@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import './CreateResourcePage.css';
+import './EditResourcePage.css'
 
 const EditResourcePage = () => {
   const { id } = useParams(); 
@@ -97,7 +98,6 @@ const EditResourcePage = () => {
 
   return (
     <div className="create-resource-page">
-      {/* Navbar */}
       <nav className="navbar">
         <ul>
           <button onClick={() => navigate('/')}>Home</button>

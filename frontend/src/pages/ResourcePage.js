@@ -1,67 +1,73 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import './ResourcePage.css'; 
+import './ResourcePage.css';
 
 const ResourcePage = ({ isAuthenticated }) => {
   const [resources, setResources] = useState([]);
-  const [filterType, setFilterType] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
-  const [types, setTypes] = useState([]); 
-  const [statuses, setStatuses] = useState([]); 
-  const [selectedResource, setSelectedResource] = useState(null); 
-  const navigate = useNavigate(); 
+  const [loading, setLoading] = useState(false);
+  const [selectedResource, setSelectedResource] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1); 
+  const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10); 
+  const navigate = useNavigate();
+
+  const statusTranslations = {
+    ON_REPAIR: 'На ремонті',
+    DESTROYED: 'Знищено',
+    DEPLOYED: 'Використовується',
+    IN_STOCK: 'В наявності',
+    EXPECTED: 'Очікується',
+  };
+
+  const typeTranslations = {
+    TECHNIQUE: 'Техніка',
+    WEAPON: 'Зброя',
+    AMMUNITION: 'Боєприпаси',
+    ARTILLERY: 'Артилерія',
+    AUTOTRANSPORT: 'Автотранспорт',
+  };
+
+  const statusOptions = ['ON_REPAIR', 'DESTROYED', 'DEPLOYED', 'IN_STOCK', 'EXPECTED'];
+  const typeOptions = ['TECHNIQUE', 'WEAPON', 'AMMUNITION', 'ARTILLERY', 'AUTOTRANSPORT'];
 
   useEffect(() => {
     if (isAuthenticated) {
       const token = localStorage.getItem('access_token');
       if (token) {
-        fetchTypesAndStatuses(token);
-        fetchResources(token, filterType, filterStatus);
+        fetchResources(token, currentPage);
       }
     }
-  }, [isAuthenticated, filterType, filterStatus]);
+  }, [isAuthenticated, statusFilter, typeFilter, currentPage]);
 
-
-  const fetchTypesAndStatuses = async (token) => {
+  const fetchResources = async (token, page) => {
+    setLoading(true);
     try {
-      const response = await axios.get('http://localhost:3000/material-resources/types-status', {
+      const response = await axios.get('http://localhost:3000/material-resources', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      });
-      setTypes(response.data.types); 
-      setStatuses(response.data.statuses); 
-    } catch (error) {
-      console.error('Error fetching types and statuses:', error);
-    }
-  };
-
-
-  const fetchResources = async (token, type, status) => {
-    try {
-      let url = 'http://localhost:3000/material-resources/filter';
-      const params = {};
-      if (type) params.type = type;
-      if (status) params.status = status;
-
-      const response = await axios.get(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+        params: {
+          status: statusFilter,
+          type: typeFilter,
+          page: page, 
+          limit: itemsPerPage, 
         },
-        params: params,
       });
-      setResources(response.data);
+      setResources(response.data.items);
+      setTotalPages(response.data.totalPages); 
     } catch (error) {
       console.error('Error fetching resources:', error);
+    } finally {
+      setLoading(false);
     }
   };
-
 
   const handleEdit = (id) => {
     navigate(`/material-resources/edit/${id}`);
   };
-
 
   const handleDelete = async (id) => {
     const token = localStorage.getItem('access_token');
@@ -69,7 +75,6 @@ const ResourcePage = ({ isAuthenticated }) => {
       await axios.delete(`http://localhost:3000/material-resources/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       setResources(resources.filter((resource) => resource.id !== id));
       alert('Resource deleted successfully');
     } catch (error) {
@@ -77,51 +82,60 @@ const ResourcePage = ({ isAuthenticated }) => {
     }
   };
 
-
   const handleViewDetails = (resource) => {
     setSelectedResource(resource);
   };
-
 
   const closeModal = () => {
     setSelectedResource(null);
   };
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
   return (
     <div className="resource-page">
-
       <nav className="navbar">
         <button onClick={() => navigate('/')}>Home</button>
       </nav>
 
-      <h2></h2>
-      <h2>Resources</h2>
-
-
+<h2></h2>
       <div className="filters">
-        <select onChange={(e) => setFilterType(e.target.value)} value={filterType}>
-          <option value="">Filter by Type</option>
-          {types.map((type) => (
-            <option key={type} value={type}>
-              {type}
-            </option>
-          ))}
-        </select>
-        <select onChange={(e) => setFilterStatus(e.target.value)} value={filterStatus}>
-          <option value="">Filter by Status</option>
-          {statuses.map((status) => (
-            <option key={status} value={status}>
-              {status}
-            </option>
-          ))}
-        </select>
-      </div>
+      <h2>Resources</h2>
+  <div>
+    <label>Status:</label>
+    <select
+      value={statusFilter}
+      onChange={(e) => setStatusFilter(e.target.value)}
+    >
+      <option value="">All</option>
+      {statusOptions.map((status) => (
+        <option key={status} value={status}>
+          {statusTranslations[status]}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  <div>
+    <label>Type:</label>
+    <select
+      value={typeFilter}
+      onChange={(e) => setTypeFilter(e.target.value)}
+    >
+      <option value="">All</option>
+      {typeOptions.map((type) => (
+        <option key={type} value={type}>
+          {typeTranslations[type]}
+        </option>
+      ))}
+    </select>
+  </div>
+</div>
 
 
-      <div className="resource-summary">
-        <p>Total Resources: {resources.length}</p>
-      </div>
-
+      {loading ? <p>Loading...</p> : null}
 
       {resources.length === 0 ? (
         <p>No resources available</p>
@@ -130,7 +144,7 @@ const ResourcePage = ({ isAuthenticated }) => {
           {resources.map((resource) => (
             <li key={resource.id}>
               <h3>{resource.type}</h3>
-              <p>Status: {resource.status}</p>
+              <p>Status: {statusTranslations[resource.status]}</p>
               <p>Quantity: {resource.quantity}</p>
               <button onClick={() => handleViewDetails(resource)}>View Details</button>
               <button onClick={() => handleEdit(resource.id)}>Edit</button>
@@ -140,12 +154,28 @@ const ResourcePage = ({ isAuthenticated }) => {
         </ul>
       )}
 
+      <div className="pagination">
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          Prev
+        </button>
+        <span>Page {currentPage} of {totalPages}</span>
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </button>
+      </div>
+
       {selectedResource && (
         <div className="modal-overlay">
           <div className="modal">
             <h3>Resource Details</h3>
-            <p><strong>Type:</strong> {selectedResource.type}</p>
-            <p><strong>Status:</strong> {selectedResource.status}</p>
+            <p><strong>Type:</strong> {typeTranslations[selectedResource.type]}</p>
+            <p><strong>Status:</strong> {statusTranslations[selectedResource.status]}</p>
             <p><strong>Type Description:</strong> {selectedResource.typeDescription}</p>
             <p><strong>Quantity:</strong> {selectedResource.quantity}</p>
             <p><strong>Location:</strong> {selectedResource.location}</p>

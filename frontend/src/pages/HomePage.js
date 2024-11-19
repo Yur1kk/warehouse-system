@@ -1,13 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom'; 
 import axios from 'axios';
 import './HomePage.css';
 
-const HomePage = ({ isAuthenticated, onLogout }) => {
+const HomePage = ({ isAuthenticated, onLogout, userRole }) => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [role, setRole] = useState(userRole);
   const navigate = useNavigate();
   const location = useLocation(); 
+  
+  
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      try {
+        const decodedToken = JSON.parse(atob(token.split('.')[1]));
+        console.log('Decoded Token:', decodedToken); 
+        setRole(decodedToken.roleId);
+      } catch (error) {
+        console.error('Error decoding token', error);
+      }
+    }
+  }, []);
 
   const handlePasswordReset = async () => {
     try {
@@ -32,7 +47,6 @@ const HomePage = ({ isAuthenticated, onLogout }) => {
     }
   };
 
-  
   const isActiveLink = (path) => location.pathname === path;
 
   return (
@@ -64,6 +78,11 @@ const HomePage = ({ isAuthenticated, onLogout }) => {
               >
                 Register Admin
               </button>
+              {userRole === 1 && (
+                <button onClick={() => navigate('/admin/manage-admins')} className={isActiveLink('/admin/manage-admins') ? 'active' : ''}>
+                  Manage Admins
+                </button>
+              )}
               <button onClick={handlePasswordReset}>Request Password Reset</button>
             </>
           )}
