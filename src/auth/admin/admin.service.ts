@@ -17,7 +17,7 @@ export class AdminService {
   ) {}
 
   async registerAdmin(registerAdminDto: RegisterAdminDto, userId: number) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const user = await this.userService.findUserById(userId);
   
     if (!user || user.roleId !== 1) {
       throw new BadRequestException('Only Head admin can create new admin users');
@@ -42,9 +42,7 @@ export class AdminService {
       throw new BadRequestException('Passwords do not match');
     }
 
-    const existingUser = await this.prisma.user.findUnique({
-        where: { email: userData.email },
-      });
+    const existingUser = await this.userService.findUserByEmail(userData.email)
     
       if (existingUser) {
         throw new BadRequestException('User with this email already exists');
@@ -77,4 +75,14 @@ export class AdminService {
 
     return {message: 'Admin has been deleted succesfully!'};
   }
+
+  async getAllAdmins() {
+    return this.prisma.user.findMany({
+      where: {
+        roleId: {
+          in: [2, 3, 4], 
+        },
+      },
+    });
+}
 }
